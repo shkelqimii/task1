@@ -7,7 +7,8 @@
           <div class="flex justify-between items-center">
             <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">User Dashboard</h1>
             <div class="flex items-center">
-              <!-- Profile Link -->          
+              <!-- Profile Link and Image -->          
+              <img v-if="currentUserProfile.imagePath" :src="getImageUrl(currentUserProfile.imagePath)" alt="Profile Image" class="w-10 h-10 object-cover rounded-full mr-2" />
               <button @click="goToProfile" class="text-gray-600 dark:text-gray-300 mr-4">
                 Profile
               </button>
@@ -23,7 +24,6 @@
         </div>
       </div>
 
-
       <!-- Content -->
       <div class="py-12">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,17 +35,22 @@
                   <thead class="bg-gray-50 dark:bg-gray-800">
                     <tr>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">ID</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Image</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
+                      <th class="px-6 py-3 text-right pr-4 text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Username</th>
+
                     </tr>
                   </thead>
                   <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
                     <tr v-for="user in users" :key="user.id" class="hover:bg-gray-50 dark:hover:bg-gray-600">
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ user.id }}</td>
+                      <td class="px-6 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                        <img v-if="user.imagePath" :src="getImageUrl(user.imagePath)" alt="User Image" class="w-10 h-10 object-cover rounded-full" />
+                      </td>
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">{{ user.username }}</td>
                       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button @click="openEditModal(user)" class="text-blue-600 hover:text-blue-900 mr-2">Edit</button>
-                        <button @click="deleteUser(user.id)" class="text-red-600 hover:text-red-900">Delete</button>
+                        <button @click="openEditModal(user)" class="mr-4 px-5 py-2 text-white bg-gradient-to-r from-green-500 to-green-700 hover:from-yellow-700 hover:to-yellow-400 shadow-md hover:shadow-lg rounded-full transform transition-all duration-200 hover:scale-110">Edit</button>
+                        <button @click="deleteUser(user.id)" class="mr-4 px-5 py-2 text-white bg-gradient-to-r from-red-800 to-pink-600 hover:from-pink-700 hover:to-red-800 shadow-md hover:shadow-lg rounded-full transform transition-all duration-200 hover:scale-110">Delete</button>
                       </td>
                     </tr>
                   </tbody>
@@ -55,6 +60,7 @@
           </div>
         </div>
       </div>
+
 
       <!-- Edit User Modal -->
       <div v-if="showEditModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
@@ -86,6 +92,8 @@ const router = useRouter();
 const isDarkMode = ref(false);
 const showEditModal = ref(false);
 const selectedUser = ref({});
+const currentUserProfile = ref({}); // Holds the current user's profile
+
 
 
 // Toggle Dark Mode
@@ -198,15 +206,45 @@ const editUser = async () => {
     alert('An error occurred while updating the user');
   }
 };
-// ... existing script setup code ...
 
 const goToProfile = () => {
   router.push('/profile');
 };
 
+// Function to get the full URL for the user's image
+const getImageUrl = (path) => {
+  return `http://localhost:5002/UploadedImages/${path}`;
+};
+
+const fetchCurrentUserProfile = async () => {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    router.push('/login');
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:5002/user/profile', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      currentUserProfile.value = await response.json();
+    } else {
+      console.error('Failed to fetch current user profile');
+    }
+  } catch (error) {
+    console.error('Error fetching current user profile:', error);
+  }
+};
+
 
 // Redirect to Profile Page if Logged In
 onMounted(() => {
+  fetchCurrentUserProfile();
   fetchUsers();
   isDarkMode.value = localStorage.getItem('darkMode') === 'true';
 });

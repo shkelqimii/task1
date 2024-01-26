@@ -5,5 +5,7 @@ namespace YourProjectName.Models
         public int Id { get; set; }
         public string Username { get; set; } = string.Empty; // Initialized as empty string
         public string Password { get; set; } = string.Empty; // Initialized as empty string
+        public string? ImagePath { get; set; } // Add this line
+
     }
 }

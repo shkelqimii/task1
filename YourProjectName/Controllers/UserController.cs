@@ -8,6 +8,8 @@ using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization; // Add this line
+
 
 namespace YourProjectName.Controllers
 {
@@ -131,6 +133,95 @@ namespace YourProjectName.Controllers
             }
 
             return Ok(user);
+        }
+
+        [HttpPut("update-profile")]
+        [Authorize] // Ensure this is protected
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var user = await _context.Users.FindAsync(Convert.ToInt32(userId));
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.IsNullOrEmpty(request.NewUsername) && request.NewUsername != user.Username)
+            {
+                if (await _context.Users.AnyAsync(u => u.Username == request.NewUsername))
+                {
+                    return BadRequest("Username already taken.");
+                }
+
+                user.Username = request.NewUsername;
+            }
+
+            if (!string.IsNullOrEmpty(request.NewPassword))
+            {
+                user.Password = _passwordHasher.HashPassword(user, request.NewPassword);
+            }
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Profile updated successfully" });
+        }
+
+        public class UpdateProfileRequest
+        {
+            public string? NewUsername { get; set; } // Make nullable
+            public string? NewPassword { get; set; } // Make nullable
+        }
+
+        [HttpPost("upload-image")]
+        [Authorize]
+        public async Task<IActionResult> UploadImage(IFormFile file)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            var user = await _context.Users.FindAsync(Convert.ToInt32(userId));
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Set the path to the UploadedImages directory
+            var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "UploadedImages");
+
+            // Ensure the directory exists
+            if (!Directory.Exists(uploadsFolderPath))
+                Directory.CreateDirectory(uploadsFolderPath);
+
+            // Create a unique file name to prevent file name conflicts
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine("UploadedImages", fileName); // Store only the relative path
+
+            var fullPath = Path.Combine(Directory.GetCurrentDirectory(), filePath);
+            
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            user.ImagePath = fileName; // Store only the file name or relative path
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Image uploaded successfully" });
         }
 
 

@@ -6,6 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.Extensions.FileProviders; // This namespace contains PhysicalFileProvider
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +63,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseStaticFiles(); // Add this to serve static files from wwwroot
+
+// Serve static files from UploadedImages directory
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "UploadedImages")),
+    RequestPath = "/UploadedImages"
+});
 
 // Comment out or remove app.UseHttpsRedirection(); if not using HTTPS in development
 // app.UseHttpsRedirection();
