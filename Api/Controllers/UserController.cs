@@ -1,17 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
-using YourProjectName.Models; // Replace with your actual namespace
-using YourProjectName.Data; // Replace with your actual namespace
+using Api.Models; 
+using Api.Data; 
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization; // Add this line
+using Microsoft.AspNetCore.Authorization; 
 
 
-namespace YourProjectName.Controllers
+namespace Api.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -52,7 +51,7 @@ namespace YourProjectName.Controllers
             }
 
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes("TmV3U2VjcmV0S2V5MjAyNFZlcnlTdHJvbmdLZXk="); // Replace with your actual long key
+            var key = Encoding.ASCII.GetBytes("TmV3U2VjcmV0S2V5MjAyNFZlcnlTdHJvbmdLZXk=");
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -98,7 +97,7 @@ namespace YourProjectName.Controllers
 
             if (await _context.Users.AnyAsync(u => u.Username == updatedUser.Username && u.Id != id))
             {
-                return BadRequest("Username already taken.");
+                return BadRequest("Ky username tashme egziston.");
             }
 
             if (!string.IsNullOrEmpty(updatedUser.Username))
@@ -136,7 +135,7 @@ namespace YourProjectName.Controllers
         }
 
         [HttpPut("update-profile")]
-        [Authorize] // Ensure this is protected
+        [Authorize]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -155,7 +154,7 @@ namespace YourProjectName.Controllers
             {
                 if (await _context.Users.AnyAsync(u => u.Username == request.NewUsername))
                 {
-                    return BadRequest("Username already taken.");
+                    return BadRequest("Ky emer tash me egziston.");
                 }
 
                 user.Username = request.NewUsername;
@@ -169,13 +168,13 @@ namespace YourProjectName.Controllers
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
-            return Ok(new { message = "Profile updated successfully" });
+            return Ok(new { message = "profili juaj u rifreskua" });
         }
 
         public class UpdateProfileRequest
         {
-            public string? NewUsername { get; set; } // Make nullable
-            public string? NewPassword { get; set; } // Make nullable
+            public string? NewUsername { get; set; } 
+            public string? NewPassword { get; set; } 
         }
 
         [HttpPost("upload-image")]
@@ -199,25 +198,20 @@ namespace YourProjectName.Controllers
                 return NotFound();
             }
 
-            // Set the path to the UploadedImages directory
             var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "UploadedImages");
 
-            // Ensure the directory exists
             if (!Directory.Exists(uploadsFolderPath))
                 Directory.CreateDirectory(uploadsFolderPath);
 
-            // Create a unique file name to prevent file name conflicts
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-            var filePath = Path.Combine("UploadedImages", fileName); // Store only the relative path
-
+            var filePath = Path.Combine("UploadedImages", fileName);
             var fullPath = Path.Combine(Directory.GetCurrentDirectory(), filePath);
-            
             using (var stream = new FileStream(fullPath, FileMode.Create))
             {
                 await file.CopyToAsync(stream);
             }
 
-            user.ImagePath = fileName; // Store only the file name or relative path
+            user.ImagePath = fileName;
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 

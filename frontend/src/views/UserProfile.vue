@@ -1,6 +1,5 @@
 <template>
   <div :class="{ 'dark': isDarkMode }">
-    <!-- Navbar -->
     <div class="bg-white dark:bg-gray-900 shadow">
       <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center">
@@ -20,7 +19,6 @@
       </div>
     </div>
     
-    <!-- Profile Content -->
     <div class="py-12 bg-gray-100 dark:bg-gray-800 min-h-screen">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="bg-white dark:bg-gray-700 overflow-hidden shadow rounded-lg">
@@ -28,7 +26,7 @@
             <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">User Profile</h1>
             <div v-if="userProfile" class="mt-4">
               <p class="text-lg text-gray-700 dark:text-gray-300">Username: {{ userProfile.username }}</p>
-                      <!-- Image Display Section -->
+
               <div class="mt-4">
                 <img v-if="userProfile.imagePath" :src="getImageUrl(userProfile.imagePath)" alt="Profile Image" class="w-32 h-32 object-cover rounded-full" />
                 <form @submit.prevent="uploadImage">
@@ -39,7 +37,6 @@
                 </form>
               </div>
               
-              <!-- Profile Update Form -->
               <div class="mt-4">
                 <input v-model="newUsername" type="text" placeholder="New Username" class="border p-2 mb-2 w-full">
                 <input v-model="newPassword" type="password" placeholder="New Password" class="border p-2 mb-2 w-full">
@@ -154,7 +151,7 @@ const uploadImage = async () => {
     }
 
     alert('Image uploaded successfully');
-    await fetchUserProfile(); // Refetch user profile to update the image
+    await fetchUserProfile();
   } catch (error) {
     console.error('Error uploading image:', error);
   }

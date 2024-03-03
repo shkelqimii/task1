@@ -5,11 +5,6 @@
         <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
           Create your account
         </h2>
-        <p class="mt-2 text-sm text-gray-600">
-          Or <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
-            sign in to your existing account
-          </a>
-        </p>
       </div>
       <form @submit.prevent="register" class="mt-8 space-y-6" action="#" method="POST">
         <input type="hidden" name="remember" value="true">
@@ -27,7 +22,6 @@
         <div>
           <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:bg-indigo-500">
             <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-              <!-- Optional: include an icon within the button -->
             </span>
             Register
           </button>
@@ -57,13 +51,13 @@ const register = async () => {
       })
     });
     if (response.ok) {
-      router.push('/login'); // Redirect to login on success
+      router.push('/login');
     } else {
-      alert('Registration failed'); // Show error message on failure
+      alert('Registration failed');
     }
   } catch (error) {
     console.error(error);
-    alert('An error occurred'); // Show error message on exception
+    alert('An error occurred'); 
   }
 };
 </script>
